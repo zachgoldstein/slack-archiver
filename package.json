@@ -1,0 +1,27 @@
+{
+  "name": "slack-archive-bot",
+  "version": "0.1.0",
+  "description": "A bot to archive public slack messages",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "slack-client": "1.4.0",
+    "aws-sdk": "2.1.26"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zachgoldstein/slack-archiver"
+  },
+  "keywords": [
+    "slack",
+    "archive",
+    "awesome"
+  ],
+  "author": "Zach Goldstein",
+  "license": "MIT"
+}
