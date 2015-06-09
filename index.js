@@ -1,29 +1,55 @@
 var Slack = require('slack-client');
-
 var AWS = require('aws-sdk');
 
 var awsAccessKey = process.env.AWS_ACCESS_KEY
+if (!awsAccessKey) {
+  console.log("Cannot find AWS access key, please set env var AWS_ACCESS_KEY")
+  process.exit()
+}
 var awsAccessSecret = process.env.AWS_SECRET_KEY
-
+if (!awsAccessSecret) {
+  console.log("Cannot find AWS secret key, please set env var AWS_SECRET_KEY")
+  process.exit()
+}
+var awsRegion = process.env.AWS_REGION
+if (!awsRegion) {
+  console.log("Cann ot find aws region, please set env var AWS_REGION")
+  process.exit()
+}
 var slackToken = process.env.SLACK_TOKEN
+if (!slackToken) {
+  console.log("Cannot find slack token, , please set env var SLACK_TOKEN")
+  process.exit()
+}
+var teamPrefix = process.env.TEAM_PREFIX
+if (!teamPrefix) {
+  console.log("Cannot find slack team prefix, please set env var TEAM_PREFIX")
+  process.exit()
+}
+var bucketName = process.env.BUCKET_NAME
+if (!bucketName) {
+  console.log("Cannot find AWS bucket name, , please set env var BUCKET_NAME")
+  process.exit()
+}
 
 AWS.config.update({accessKeyId: awsAccessKey, secretAccessKey: awsAccessSecret});
-AWS.config.update({region: 'ap-southeast-2'})
+AWS.config.update({region: awsRegion})
 
-var s3 = new AWS.S3({params: {Bucket: 'slack-archive'}});
-
+var s3 = new AWS.S3({params: {Bucket: bucketName}});
 var slack = new Slack(slackToken, true, true);
+
+slack.on('error', function (err) {
+  if (err) {
+    console.log("There was an error logging in, ",err);
+    process.exit()
+  }
+});
 
 slack.on('open', function () {
     var channels = Object.keys(slack.channels)
         .map(function (k) { return slack.channels[k]; })
         .filter(function (c) { return c.is_member; })
         .map(function (c) { return c.name; });
-
-    var groups = Object.keys(slack.groups)
-        .map(function (k) { return slack.groups[k]; })
-        .filter(function (g) { return g.is_open && !g.is_archived; })
-        .map(function (g) { return g.name; });
 
     console.log('Welcome to Slack. You are ' + slack.self.name + ' of ' + slack.team.name);
 
@@ -32,10 +58,6 @@ slack.on('open', function () {
     }
     else {
         console.log('You are not in any channels.');
-    }
-
-    if (groups.length > 0) {
-       console.log('As well as: ' + groups.join(', '));
     }
 
     channel = slack.getChannelGroupOrDMByName("#bots")
@@ -60,8 +82,8 @@ slack.on('message', function(message) {
     var currentArchive = '';
 
     var params = {
-      Bucket: 'slack-archive',
-      Key: channel.name + '_archive.txt',
+      Bucket: bucketName,
+      Key: teamPrefix + "_" + channel.name + '_archive.txt',
     }
 
     s3.getObject(params, function(err, data) {
