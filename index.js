@@ -40,8 +40,7 @@ var slack = new Slack(slackToken, true, true);
 
 slack.on('error', function (err) {
   if (err) {
-    console.log("There was an error logging in, ",err);
-    process.exit()
+    console.log("An error occurred, ",err);
   }
 });
 
